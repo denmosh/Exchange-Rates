@@ -32,6 +32,7 @@
         "drupal/composer_autoloader": "^1.0",
         "drupal/drupal": "^7.62",
         "drupal/drush": "^5.9",
+        "drupal/entity": "^1.9",
         "drupal/l10n_update": "^2.4",
         "drush/drush": "^8.0",
         "squizlabs/php_codesniffer": "^3.5",
