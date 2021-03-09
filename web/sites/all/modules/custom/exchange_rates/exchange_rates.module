@@ -1,0 +1,250 @@
+<?php
+
+/**
+ * @file
+ * Provides functionality to work with Valute entity and cbr API.
+ */
+
+/**
+ * Implements hook_entity_info().
+ */
+function exchange_rates_entity_info() {
+  return [
+    'currency' => [
+      'label' => 'Currency',
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'currency',
+      'entity keys' => [
+        'id' => 'cid',
+        'label' => 'Name',
+      ],
+      'admin ui' => [
+        'path' => 'admin/structure/currency',
+      ],
+      'access callback' => 'currency_access',
+      'module' => 'exchange_rates',
+    ],
+  ];
+}
+
+/**
+ * Access callback.
+ */
+function currency_access($op, $entity, $account = NULL, $entity_type = 'currency') {
+  // сущность будет доступна только администратору сайта.
+  return user_access('administer site configuration');
+}
+
+/**
+ * Load currency entity by id.
+ */
+function currency_load($cid) {
+  $result = entity_load('currency', [$cid]);
+  return $result ? reset($result) : FALSE;
+}
+
+/**
+ * Currency entity form.
+ */
+function currency_form($form, &$form_state, $currency, $op = 'edit') {
+  $form['vid'] = [
+    '#title' => 'Id валюты',
+    '#description' => '',
+    '#type' => 'textfield',
+    '#default_value' => isset($currency->vid) ? $currency->vid : '',
+    '#required' => TRUE,
+  ];
+  $form['NumCode'] = [
+    '#title' => 'Цифровой код',
+    '#description' => '',
+    '#type' => 'textfield',
+    '#default_value' => isset($currency->NumCode) ? $currency->NumCode : '',
+    '#required' => TRUE,
+  ];
+  $form['CharCode'] = [
+    '#title' => 'Буквенный код',
+    '#description' => '',
+    '#type' => 'textfield',
+    '#default_value' => isset($currency->CharCode) ? $currency->CharCode : '',
+    '#required' => TRUE,
+  ];
+  $form['Nominal'] = [
+    '#title' => 'Номинал',
+    '#description' => '',
+    '#type' => 'textfield',
+    '#default_value' => isset($currency->Nominal) ? $currency->Nominal : '',
+    '#required' => TRUE,
+  ];
+  $form['Name'] = [
+    '#title' => 'Название валюты',
+    '#description' => '',
+    '#type' => 'textfield',
+    '#default_value' => isset($currency->Name) ? $currency->Name : '',
+    '#required' => TRUE,
+  ];
+  $form['Value'] = [
+    '#title' => 'Значение',
+    '#description' => '',
+    '#type' => 'textfield',
+    '#default_value' => isset($currency->Value) ? $currency->Value : '',
+    '#required' => TRUE,
+  ];
+  $form['Day'] = [
+    '#title' => 'Дата',
+    '#description' => '',
+    '#type' => 'textfield',
+    '#default_value' => isset($currency->Day) ? date('d.m.Y', $currency->Day) : '',
+    '#required' => TRUE,
+  ];
+  $form['actions'] = [
+    '#type' => 'actions',
+  ];
+  $form['actions']['submit'] = [
+    '#type' => 'submit',
+    '#value' => 'Сохранить',
+  ];
+
+  return $form;
+}
+
+/**
+ * Currency entity form submit.
+ */
+function currency_form_submit(&$form, &$form_state) {
+  form_set_value($form['Day'], strtotime($form_state['values']['Day']), $form_state);
+  $currency = entity_ui_form_submit_build_entity($form, $form_state);
+  $currency->save();
+  $form_state['redirect'] = 'admin/structure/currency';
+}
+
+/**
+ * @return mixed
+ */
+function exchange_rates_form() {
+
+  $form['date'] = [
+    '#type' => 'textfield',
+    '#title' => t('Date'),
+    '#default_value' => date("d/m/Y"),
+    '#required' => TRUE,
+    '#size' => 10,
+    '#maxlength' => 10,
+    '#description' => t("Date of currency rates that you want to load")
+  ];
+
+  $form['submit'] = [
+    '#type' => 'submit',
+    '#value' => t('Load rates'),
+  ];
+  return $form;
+}
+function exchange_rates_module_example_form_validate($form, &$form_state) {
+  // Проверка корректности заполнения.
+}
+function exchange_rates_form_submit($form, &$form_state) {
+  cbr_get_daily_rates();
+  drupal_set_message("added");
+}
+
+/**
+ * Implements hook_menu().
+ */
+function exchange_rates_menu() {
+
+  $items = [];
+
+  $items['admin/settings/exchange_rates'] = [
+    'title' => 'Exchange Rates module settings',
+    'description' => 'Configuration for Exchange Rates module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['exchange_rates_form'],
+    'access arguments' => ['access administration pages'],
+    'type' => MENU_NORMAL_ITEM,
+  ];
+
+  return $items;
+}
+
+/**
+ * Implements hook_cron
+ */
+function exchange_rates_cron() {
+
+  // Default to an hourly interval. Of course, cron has to be running at least
+  // daily for this to work.
+  $interval = variable_get('exchange_rates_interval', 24 * 60 * 60);
+
+  // We usually don't want to act every time cron runs (which could be every
+  // minute) so keep a time for the next run in a variable.
+  if (time() >= variable_get('exchange_rates_next_execution', 0)) {
+
+
+    variable_set('exchange_rates_next_execution', time() + $interval);
+  }
+}
+
+/**
+ * @param string $day
+ *
+ * @return \SimpleXMLElement
+ */
+function cbr_get_daily_rates($day = '') {
+  $cbr_url = "http://www.cbr.ru/scripts/XML_daily.asp?date_req=";
+  $xml = simplexml_load_file($cbr_url.$day);
+  if ($xml === FALSE) {
+    drupal_set_message("XML loading failed.");
+  }
+  else {
+    create_currencies_from_xml($xml);
+  }
+}
+
+/**
+ * @param string $day
+ *
+ * @return \SimpleXMLElement
+ */
+function create_currencies_from_xml($xml) {
+
+  $day = (string) $xml->attributes()->Date;
+  foreach ($xml->Valute as $item) {
+    try {
+      $entity_type = 'currency';
+      $entity = entity_create($entity_type, [
+        'vid' => (string) $item->attributes()->ID,
+        'NumCode' => $item->NumCode,
+        'CharCode' => $item->CharCode,
+        'Nominal' => $item->Nominal,
+        'Name' => $item->Name,
+        'Value' => $item->Value,
+        'Day' => strtotime($day),
+      ]);
+      $entity->save();
+      drupal_set_message($entity->cid);
+    }
+    catch (EntityMetadataWrapperException $e) {
+      watchdog_exception('exchange_rates', $e);
+    }
+  }
+}
+
+function exchange_rates_data_alter(&$data) {
+  $data['currency']['Day'] = [
+    'title' => 'Day',
+    'help' => 'Date',
+    'field' => [
+      'handler' => 'views_handler_field_date'
+    ],
+    'sort' => [
+      'handler' => 'views_handler_sort_date',
+    ],
+    'filter' => [
+      'handler' => 'views_handler_filter_date',
+      'is date' => TRUE,
+    ],
+    'argument' => [
+      'handler' => 'views_handler_argument_date'
+    ],
+  ];
+}

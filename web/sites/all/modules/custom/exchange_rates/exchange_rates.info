@@ -1,0 +1,6 @@
+name = Exchange Rates
+description = Module for downloading and storing exchange rates from cbr
+version = 7.x-dev
+core = 7.x
+dependencies[] = entity
+configure = admin/settings/exchange_rates
