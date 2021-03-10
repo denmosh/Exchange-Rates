@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9344393cf07f314e15db3669e789e0a7",
+    "content-hash": "4007f0a6fc802f010ecc3ad729968f52",
     "packages": [
         {
             "name": "composer/installers",
@@ -1253,6 +1253,59 @@
             "homepage": "https://www.drupal.org/project/views",
             "support": {
                 "source": "https://git.drupalcode.org/project/views"
+            }
+        },
+        {
+            "name": "drupal/views_simplechart",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/views_simplechart.git",
+                "reference": "7.x-1.1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/views_simplechart-7.x-1.1.zip",
+                "reference": "7.x-1.1",
+                "shasum": "dd729dc0dd8a6d58446e3eb51b2aec2e62fae526"
+            },
+            "require": {
+                "drupal/drupal": "~7.0",
+                "drupal/views": "*"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "7.x-1.1",
+                    "datestamp": "1479888539",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/7/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "drupwash",
+                    "homepage": "https://www.drupal.org/user/1652472"
+                },
+                {
+                    "name": "jacob.embree",
+                    "homepage": "https://www.drupal.org/user/2622325"
+                },
+                {
+                    "name": "meenugupta",
+                    "homepage": "https://www.drupal.org/user/265769"
+                }
+            ],
+            "description": "Simple visualization based on google api",
+            "homepage": "https://www.drupal.org/project/views_simplechart",
+            "support": {
+                "source": "https://git.drupalcode.org/project/views_simplechart"
             }
         },
         {
