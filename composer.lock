@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "596936ca52033ab397dc5773bd59f2d4",
-    "packages": [
+    "content-hash": "ca41473caddb47fc144bda04fe9486b0",
+    "pacgit kages": [
         {
             "name": "composer/installers",
             "version": "v1.10.0",
@@ -1423,6 +1423,57 @@
             "homepage": "https://www.drupal.org/project/entity",
             "support": {
                 "source": "https://git.drupalcode.org/project/entity"
+            }
+        },
+        {
+            "name": "drupal/google_chart_tools",
+            "version": "1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/google_chart_tools.git",
+                "reference": "7.x-1.4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/google_chart_tools-7.x-1.4.zip",
+                "reference": "7.x-1.4",
+                "shasum": "963771ccf45c0ee83be6f53afa568e642d6432ae"
+            },
+            "require": {
+                "drupal/drupal": "~7.0"
+            },
+            "require-dev": {
+                "drupal/views": "*"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "7.x-1.4",
+                    "datestamp": "1363700278",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/7/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "konforti",
+                    "homepage": "https://www.drupal.org/user/99548"
+                },
+                {
+                    "name": "lee20",
+                    "homepage": "https://www.drupal.org/user/147326"
+                }
+            ],
+            "description": "Provide a Google Chart Tools API.",
+            "homepage": "https://www.drupal.org/project/google_chart_tools",
+            "support": {
+                "source": "https://git.drupalcode.org/project/google_chart_tools"
             }
         },
         {

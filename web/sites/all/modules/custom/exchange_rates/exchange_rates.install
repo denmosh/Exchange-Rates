@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file
+ * Installation file for Exchange Rates module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function exchange_rates_schema() {
+
+  $schema['currency'] = [
+    'fields' => [
+      'cid' => [
+        'description' => 'Currency ID',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'vid' => [
+        'description' => 'Valute ID from CBR',
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => TRUE,
+      ],
+      'NumCode' => [
+        'description' => 'Numeric Code of currency',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'small',
+        'not null' => TRUE,
+      ],
+      'CharCode' => [
+        'description' => 'Character code of currency',
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => TRUE,
+      ],
+      'Nominal' => [
+        'description' => 'Nominal',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'small',
+        'not null' => TRUE,
+      ],
+      'Name' => [
+        'description' => 'Title of currency',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ],
+      'Value' => [
+        'type' => 'float',
+        'unsigned' => TRUE,
+        'size' => 'normal',
+        'not null' => FALSE,
+        'description' => 'Value of currency',
+      ],
+      'Day' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Day',
+      ],
+    ],
+    'primary key' => ['cid'],
+  ];
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall.
+ */
+function exchange_rates_uninstall() {
+  drupal_uninstall_schema('exchange_rates');
+  menu_rebuild();
+}

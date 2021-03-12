@@ -35,6 +35,7 @@
         "drupal/drupal": "^7.62",
         "drupal/drush": "^5.9",
         "drupal/entity": "^1.9",
+        "drupal/google_chart_tools": "^1.4",
         "drupal/l10n_update": "^2.4",
         "drupal/views": "^3.24",
         "drush/drush": "^8.0",
