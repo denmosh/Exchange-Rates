@@ -119,6 +119,33 @@ function currency_form_submit(&$form, &$form_state) {
 }
 
 /**
+ * Implements hook_menu().
+ */
+function exchange_rates_menu() {
+
+  $items = [];
+
+  $items['admin/config/exchange_rates'] = [
+    'title' => 'Exchange Rates module settings',
+    'description' => 'Configuration for Exchange Rates module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['exchange_rates_form'],
+    'access arguments' => ['access administration pages'],
+    'type' => MENU_NORMAL_ITEM,
+  ];
+  $items['admin/config/exchange_rates/report'] = [
+    'title' => 'Exchange Rates report',
+    'description' => 'Save report in json format',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['exchange_rates_report_form'],
+    'access arguments' => ['access administration pages'],
+    'type' => MENU_NORMAL_ITEM,
+  ];
+
+  return $items;
+}
+
+/**
  * @return mixed
  */
 function exchange_rates_form() {
@@ -139,35 +166,91 @@ function exchange_rates_form() {
   ];
   return $form;
 }
-function exchange_rates_module_example_form_validate($form, &$form_state) {
+
+function exchange_rates_form_validate($form, &$form_state) {
   // Проверка корректности заполнения.
 }
+
+/**
+ * @param $form
+ * @param $form_state
+ */
 function exchange_rates_form_submit($form, &$form_state) {
-  cbr_get_daily_rates();
-  drupal_set_message("added");
+  cbr_get_daily_rates($form_state['values']['date']);
 }
 
 /**
- * Implements hook_menu().
+ * @return mixed
  */
-function exchange_rates_menu() {
+function exchange_rates_report_form() {
 
-  $items = [];
-
-  $items['admin/settings/exchange_rates'] = [
-    'title' => 'Exchange Rates module settings',
-    'description' => 'Configuration for Exchange Rates module',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => ['exchange_rates_form'],
-    'access arguments' => ['access administration pages'],
-    'type' => MENU_NORMAL_ITEM,
+  $form['heading'] = [
+    '#type' => 'markup',
+    '#markup' => '<h2>Создание отчета в формате json</h2>',
+  ];
+  $form['date_start'] = [
+    '#type' => 'textfield',
+    '#title' => t('Date start'),
+    '#default_value' => date("d/m/Y", strtotime("-7 days")),
+    '#required' => TRUE,
+    '#size' => 10,
+    '#maxlength' => 10,
+    '#description' => t("Date of currency rates that you want to load")
+  ];
+  $form['date_end'] = [
+    '#type' => 'textfield',
+    '#title' => t('Date end'),
+    '#default_value' => date("d/m/Y" ),
+    '#required' => TRUE,
+    '#size' => 10,
+    '#maxlength' => 10,
+    '#description' => t("Date of currency rates that you want to load")
   ];
 
-  return $items;
+  $form['submit'] = [
+    '#type' => 'submit',
+    '#value' => t('Generate report'),
+  ];
+  return $form;
 }
 
 /**
- * Implements hook_cron
+ * @param $form
+ * @param $form_state
+ */
+function exchange_rates_report_form_validate($form, &$form_state) {
+  // Проверка корректности заполнения.
+}
+
+/**
+ * @param $form
+ * @param $form_state
+ */
+function exchange_rates_report_form_submit($form, &$form_state) {
+  drupal_set_message("report");
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'currency')
+    ->propertyCondition('Day', strtotime($form_state['values']['date_start']), '>=')
+    ->propertyCondition('Day', strtotime($form_state['values']['date_end']), '<=');
+
+  $result = $query->execute();
+
+  if (isset($result['currency'])) {
+    $currency_cids = array_keys($result['currency']);
+    $currency_items = entity_load('currency', $currency_cids);
+    $json_report = json_encode($currency_items);
+    drupal_set_message("report" . $json_report);
+    header('Content-Disposition: attachment; filename="report.json"');
+    header("Pragma: no-cache");
+    header("Cache-Control: no-cache");
+    header("Cache-Control: nmax-age=0");
+    drupal_json_output($currency_items);
+    exit();
+  }
+}
+
+/**
+ * Implements hook_cron().
  */
 function exchange_rates_cron() {
 
@@ -178,16 +261,13 @@ function exchange_rates_cron() {
   // We usually don't want to act every time cron runs (which could be every
   // minute) so keep a time for the next run in a variable.
   if (time() >= variable_get('exchange_rates_next_execution', 0)) {
-
-
+    cbr_get_daily_rates();
     variable_set('exchange_rates_next_execution', time() + $interval);
   }
 }
 
 /**
  * @param string $day
- *
- * @return \SimpleXMLElement
  */
 function cbr_get_daily_rates($day = '') {
   $cbr_url = "http://www.cbr.ru/scripts/XML_daily.asp?date_req=";
@@ -201,9 +281,7 @@ function cbr_get_daily_rates($day = '') {
 }
 
 /**
- * @param string $day
- *
- * @return \SimpleXMLElement
+ * @param $xml
  */
 function create_currencies_from_xml($xml) {
 
@@ -229,7 +307,10 @@ function create_currencies_from_xml($xml) {
   }
 }
 
-function exchange_rates_data_alter(&$data) {
+/**
+ * Implements hook_views_data_alter().
+ */
+function exchange_rates_views_data_alter(&$data) {
   $data['currency']['Day'] = [
     'title' => 'Day',
     'help' => 'Date',
