@@ -22,7 +22,7 @@
         "ext-json": "*",
         "ext-openssl": "*",
         "ext-pdo": "*",
-        "ext-simplexml": "^7.3",
+        "ext-simplexml": "^5.4",
         "ext-xml": "*",
         "composer/installers": "^1.2",
         "composer/semver": "^1.4",
